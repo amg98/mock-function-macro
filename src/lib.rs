@@ -38,24 +38,25 @@ pub fn mock_fn(_attr: TokenStream, input: TokenStream) -> TokenStream {
     let mock_name = Ident::new(&mock_name, Span::call_site());
     let set_mock_fn_name = format!("set_mock_for_{}", func_name);
     let set_mock_fn_name = Ident::new(&set_mock_fn_name, Span::call_site());
+    let clear_mock_fn_name = format!("clear_mock_for_{}", func_name);
+    let clear_mock_fn_name = Ident::new(&clear_mock_fn_name, Span::call_site());
 
     let expanded = quote! {
         use std::borrow::BorrowMut;
-        use std::cell::RefCell;
 
         #[cfg(not(test))]
         #input
 
         #[cfg(test)]
         thread_local! {
-            static #mock_name: RefCell<Option<Box<dyn FnMut(#(#param_types),*) #output>>> = RefCell::new(None);
+            static #mock_name: std::cell::RefCell<(u32, Option<Box<dyn FnMut(#(#param_types),*) #output>>)> = std::cell::RefCell::new((0, None));
         }
 
         #[cfg(test)]
         fn #func_name(#(#param_names: #param_types),*) #output {
             #mock_name.with(|mock| {
                 let mut mock = mock.borrow_mut();
-                if let Some(ref mut mock_fn) = *mock {
+                if let Some(ref mut mock_fn) = mock.1 {
                     mock_fn(#(#param_names),*)
                 } else {
                     panic!("No mock has been set");
@@ -69,7 +70,24 @@ pub fn mock_fn(_attr: TokenStream, input: TokenStream) -> TokenStream {
             F: FnMut(#(#param_types),*) #output + 'static,
         {
             #mock_name.with(|mock| {
-                *mock.borrow_mut() = Some(Box::new(mock_fn));
+                let mut mock = mock.borrow_mut();
+                if mock.0 > 0 {
+                    panic!("You forgot to clear this mock");
+                }
+                mock.1 = Some(Box::new(mock_fn));
+                mock.0 = mock.0 + 1;
+            });
+        }
+
+        #[cfg(test)]
+        pub fn #clear_mock_fn_name() {
+            #mock_name.with(|mock| {
+                let mut mock = mock.borrow_mut();
+                if mock.0 == 0 {
+                    panic!("This mock is already cleared");
+                }
+                mock.1 = None;
+                mock.0 = mock.0 - 1;
             });
         }
     };
