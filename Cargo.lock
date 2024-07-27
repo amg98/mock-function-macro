@@ -3,19 +3,13 @@
 version = 3
 
 [[package]]
-name = "atomic_refcell"
-version = "0.1.13"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "41e67cd8309bbd06cd603a9e693a784ac2e5d1e955f11286e355089fcab3047c"
-
-[[package]]
 name = "mock-function-macro"
 version = "0.1.0"
 dependencies = [
  "proc-macro2",
  "quote",
- "singlyton",
  "syn",
+ "utils",
 ]
 
 [[package]]
@@ -37,15 +31,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "singlyton"
-version = "4.1.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d920bedcb124f2e219f9e8401e252f3ed013370d9c19fd7ae9c6fe2266db35ec"
-dependencies = [
- "atomic_refcell",
-]
-
-[[package]]
 name = "syn"
 version = "1.0.109"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -61,3 +46,7 @@ name = "unicode-ident"
 version = "1.0.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3354b9ac3fae1ff6755cb6db53683adb661634f67557942dea4facebec0fee4b"
+
+[[package]]
+name = "utils"
+version = "0.1.0"
